@@ -14,7 +14,7 @@ gem install nlspec_to_dot-0.1.0.gem
 Or add to your Gemfile:
 
 ```ruby
-gem "nlspec-to-dot", path: "~/OS/nlspec-to-dot"
+gem "nlspec-to-dot"
 ```
 
 ## Usage
