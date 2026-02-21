@@ -1,6 +1,6 @@
 # nlspec-to-dot
 
-Compile natural language specifications (NLSpecs) describing Rails apps into DOT pipeline files executable by [attractor](https://github.com/aliciapaz/attractor-rb).
+Compile natural language specifications (NLSpecs) describing Rails apps into DOT pipeline files executable by [attractor-rb](https://github.com/aliciapaz/attractor-rb).
 
 **NLSpec markdown → compile → DOT pipeline → `attractor run`**
 
