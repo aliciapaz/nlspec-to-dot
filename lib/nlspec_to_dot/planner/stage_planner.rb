@@ -8,6 +8,7 @@ module NlspecToDot
       def initialize(document:)
         @document = document
         @prompt_builder = PromptBuilder.new(document: document)
+        @scaffold_command_builder = ScaffoldCommandBuilder.new(document: document)
         @stages = []
         @edges = []
       end
@@ -39,8 +40,8 @@ module NlspecToDot
         add_stage(
           id: "scaffold",
           label: "Scaffold App",
-          shape: "box",
-          prompt: @prompt_builder.scaffold_prompt
+          shape: "parallelogram",
+          attrs: {tool_command: @scaffold_command_builder.call, timeout: "5m"}
         )
         add_edge("start", "scaffold")
       end
@@ -122,7 +123,7 @@ module NlspecToDot
           id: "run_tests",
           label: "Run Tests",
           shape: "parallelogram",
-          prompt: "bundle exec rspec"
+          attrs: {tool_command: "bundle exec rspec", timeout: "5m"}
         )
         add_edge("tests", "run_tests")
       end
