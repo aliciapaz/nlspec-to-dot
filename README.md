@@ -21,6 +21,7 @@ gem "nlspec-to-dot"
 
 ```bash
 nlspec-to-dot compile spec.md -o pipeline.dot
+attractor run pipeline.dot --backend codex --interviewer console
 ```
 
 Options:
@@ -30,7 +31,7 @@ Options:
 
 ## NLSpec Format
 
-Structured markdown with `# AppName`, `## Models`, `## Features`, and `## Constraints` sections:
+Structured markdown with `# AppName`, `## Models`, `## Features`, `## Constraints`, `## Assets`, and `## Seeds` sections:
 
 ```markdown
 # SimpleBlog
@@ -48,7 +49,11 @@ A simple blog application where users can create and publish posts.
 ### Post
 - title:string
 - body:text
+- published:boolean
+- enum status: { draft: 0, published: 1 }
 - belongs_to :user
+- has_many :comments, dependent: :destroy
+- has_one_attached :cover_image
 - validates :title, presence: true
 
 ## Features
@@ -62,13 +67,21 @@ Related models: Post, User
 - Authorization: ActionPolicy
 - Frontend: Hotwire (Turbo + Stimulus)
 - Testing: RSpec with FactoryBot
+
+## Assets
+- chart.js: npm:chart.js@4.4.4 -> vendor/javascript/chart.umd.js
+
+## Seeds
+- Admin user: email=admin@example.com, name=Admin
 ```
 
 ## What it produces
 
-A DOT digraph with stages for scaffolding, models (topologically sorted by `belongs_to` dependencies), routes, controllers, services, views, tests, a test runner, a pass/fail gate with retry loop, and a human review gate. All `box` nodes include prompts with embedded Telos conventions.
+A DOT digraph with stages for template cloning, models (topologically sorted and parallelized by `belongs_to` dependencies), routes, controllers, services, views, seeds, tests, a test runner, a pass/fail gate with retry loop, and a human review gate. Independent stages (models, controllers, views) run in parallel via fan-out/fan-in nodes. All `box` nodes include prompts with embedded Telos conventions.
 
 The output passes all 13 attractor lint rules.
+
+Generated DOT is backend-agnostic; choose `simulation`, `codex`, or `claude` when running the pipeline with `attractor run --backend ...`.
 
 ## Development
 

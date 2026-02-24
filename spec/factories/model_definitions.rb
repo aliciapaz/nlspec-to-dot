@@ -6,9 +6,18 @@ FactoryBot.define do
     fields { [{name: "name", type: "string"}] }
     associations { [] }
     validations { [] }
+    enums { [] }
+    attachments { [] }
 
     initialize_with do
-      new(name: name, fields: fields, associations: associations, validations: validations)
+      new(
+        name: name,
+        fields: fields,
+        associations: associations,
+        validations: validations,
+        enums: enums,
+        attachments: attachments
+      )
     end
 
     trait :user do

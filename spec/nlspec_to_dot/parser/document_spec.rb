@@ -30,4 +30,38 @@ RSpec.describe NlspecToDot::Parser::Document do
     expect(document.features).to be_frozen
     expect(document.constraints).to be_frozen
   end
+
+  it "defaults assets to empty array" do
+    expect(document.assets).to eq([])
+  end
+
+  it "defaults seeds to empty array" do
+    expect(document.seeds).to eq([])
+  end
+
+  context "with assets and seeds" do
+    subject(:document) do
+      build(
+        :document,
+        assets: [{name: "chart.js", source: "npm:chart.js@4.4.4", destination: "vendor/javascript/chart.umd.js"}],
+        seeds: [{label: "Admin", attributes: {"email" => "admin@test.com"}}]
+      )
+    end
+
+    it "stores assets" do
+      expect(document.assets.size).to eq(1)
+    end
+
+    it "stores seeds" do
+      expect(document.seeds.size).to eq(1)
+    end
+
+    it "freezes assets" do
+      expect(document.assets).to be_frozen
+    end
+
+    it "freezes seeds" do
+      expect(document.seeds).to be_frozen
+    end
+  end
 end

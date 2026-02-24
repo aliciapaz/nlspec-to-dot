@@ -9,12 +9,44 @@ module NlspecToDot
         new(models).sort
       end
 
+      def self.batch(models)
+        new(models).batch
+      end
+
       def initialize(models)
         @models = models
         @by_name = models.each_with_object({}) { |m, h| h[m.name] = m }
       end
 
       def sort
+        batch.flatten
+      end
+
+      def batch
+        in_degree = compute_in_degrees
+        remaining = @models.dup
+        batches = []
+
+        until remaining.empty?
+          ready = remaining.select { |m| in_degree[m.name] == 0 }
+          raise CycleError, "Cyclic dependency detected among models" if ready.empty?
+
+          batches << ready
+          remaining -= ready
+
+          ready.each do |done|
+            remaining.each do |m|
+              in_degree[m.name] -= 1 if m.depends_on.include?(done.name)
+            end
+          end
+        end
+
+        batches
+      end
+
+      private
+
+      def compute_in_degrees
         in_degree = Hash.new(0)
         @models.each { |m| in_degree[m.name] ||= 0 }
 
@@ -25,25 +57,7 @@ module NlspecToDot
           end
         end
 
-        queue = @models.select { |m| in_degree[m.name] == 0 }
-        sorted = []
-
-        until queue.empty?
-          node = queue.shift
-          sorted << node
-
-          @models.each do |m|
-            next unless m.depends_on.include?(node.name)
-            in_degree[m.name] -= 1
-            queue << m if in_degree[m.name] == 0
-          end
-        end
-
-        if sorted.size != @models.size
-          raise CycleError, "Cyclic dependency detected among models"
-        end
-
-        sorted
+        in_degree
       end
     end
   end

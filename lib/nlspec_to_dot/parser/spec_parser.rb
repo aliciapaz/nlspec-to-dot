@@ -21,7 +21,9 @@ module NlspecToDot
           description: description,
           models: parse_models(sections["Models"]),
           features: parse_features(sections["Features"]),
-          constraints: parse_constraints(sections["Constraints"])
+          constraints: parse_constraints(sections["Constraints"]),
+          assets: parse_assets(sections["Assets"]),
+          seeds: parse_seeds(sections["Seeds"])
         )
       end
 
@@ -78,6 +80,8 @@ module NlspecToDot
         fields = []
         associations = []
         validations = []
+        enums = []
+        attachments = []
 
         body.each_line do |line|
           line = line.strip
@@ -86,7 +90,11 @@ module NlspecToDot
 
           case content
           when /^(belongs_to|has_many|has_one)\s+:(\w+)/
-            associations << {kind: $1.to_sym, target: classify($2)}
+            associations << parse_association($1, $2, content)
+          when /^has_one_attached\s+:(\w+)/
+            attachments << {name: $1}
+          when /^enum\s+(\w+):\s*\{([^}]+)\}/
+            enums << parse_enum($1, $2)
           when /^validates\s+/
             validations << content
           when /^(\w+):(\w+)/
@@ -98,8 +106,29 @@ module NlspecToDot
           name: name,
           fields: fields,
           associations: associations,
-          validations: validations
+          validations: validations,
+          enums: enums,
+          attachments: attachments
         )
+      end
+
+      def parse_association(kind, target_name, content)
+        assoc = {kind: kind.to_sym, target: classify(target_name)}
+        if content.match(/through:\s*:(\w+)/)
+          assoc[:through] = $1
+        end
+        if content.match(/dependent:\s*:(\w+)/)
+          assoc[:dependent] = $1.to_sym
+        end
+        assoc
+      end
+
+      def parse_enum(name, values_str)
+        values = values_str.split(",").each_with_object({}) do |pair, hash|
+          key, val = pair.strip.split(/:\s*/, 2)
+          hash[key.strip] = val.strip.to_i
+        end
+        {name: name, values: values}
       end
 
       def parse_features(text)
@@ -136,6 +165,37 @@ module NlspecToDot
           if content.include?(":")
             key, value = content.split(":", 2).map(&:strip)
             ConstraintDefinition.new(key: key, value: value)
+          end
+        }
+      end
+
+      def parse_assets(text)
+        return [] unless text
+
+        text.each_line.filter_map { |line|
+          line = line.strip
+          next unless line.start_with?("- ")
+          content = line.sub(/^-\s+/, "")
+          if content.match(/^(.+?):\s*(.+?)\s*->\s*(.+)$/)
+            {name: $1.strip, source: $2.strip, destination: $3.strip}
+          end
+        }
+      end
+
+      def parse_seeds(text)
+        return [] unless text
+
+        text.each_line.filter_map { |line|
+          line = line.strip
+          next unless line.start_with?("- ")
+          content = line.sub(/^-\s+/, "")
+          if content.include?(":")
+            label, attrs_str = content.split(":", 2).map(&:strip)
+            attributes = attrs_str.split(",").each_with_object({}) do |pair, hash|
+              key, val = pair.strip.split("=", 2)
+              hash[key.strip] = val.strip
+            end
+            {label: label, attributes: attributes}
           end
         }
       end
