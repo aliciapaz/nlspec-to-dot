@@ -16,7 +16,6 @@ require_relative "nlspec_to_dot/planner/stage"
 require_relative "nlspec_to_dot/planner/telos_context"
 require_relative "nlspec_to_dot/planner/topological_sorter"
 require_relative "nlspec_to_dot/planner/prompt_builder"
-require_relative "nlspec_to_dot/planner/scaffold_command_builder"
 require_relative "nlspec_to_dot/planner/template_command_builder"
 require_relative "nlspec_to_dot/planner/stage_planner"
 

@@ -351,7 +351,7 @@ module NlspecToDot
       end
 
       def has_seeds?
-        @document.respond_to?(:seeds) && @document.seeds.any?
+        @document.seeds.any?
       end
 
       def add_stage(id:, label:, shape:, prompt: nil, attrs: {})

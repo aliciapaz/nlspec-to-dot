@@ -40,8 +40,6 @@ module NlspecToDot
       private
 
       def assets
-        return [] unless @document.respond_to?(:assets)
-
         @document.assets
       end
 

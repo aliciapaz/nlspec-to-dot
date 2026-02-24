@@ -6,22 +6,6 @@ RSpec.describe NlspecToDot::Planner::PromptBuilder do
   let(:document) { build(:document, :full) }
   let(:builder) { described_class.new(document: document) }
 
-  describe "#scaffold_prompt" do
-    subject(:prompt) { builder.scaffold_prompt }
-
-    it "includes the app name" do
-      expect(prompt).to include("TestApp")
-    end
-
-    it "includes dependency list" do
-      expect(prompt).to include("rails")
-    end
-
-    it "includes Telos context" do
-      expect(prompt).to include("lines per method")
-    end
-  end
-
   describe "#template_customize_prompt" do
     subject(:prompt) { builder.template_customize_prompt }
 
@@ -67,12 +51,6 @@ RSpec.describe NlspecToDot::Planner::PromptBuilder do
     end
   end
 
-  describe "#controllers_prompt" do
-    it "includes ActionPolicy reference" do
-      expect(builder.controllers_prompt).to include("ActionPolicy")
-    end
-  end
-
   describe "#controllers_prompt_for" do
     let(:model) { build(:model_definition, :post) }
     subject(:prompt) { builder.controllers_prompt_for(model) }
@@ -91,12 +69,6 @@ RSpec.describe NlspecToDot::Planner::PromptBuilder do
 
     it "includes authorization instruction" do
       expect(prompt).to include("authorize!")
-    end
-  end
-
-  describe "#services_prompt" do
-    it "includes feature descriptions" do
-      expect(builder.services_prompt).to include("Publishing")
     end
   end
 
@@ -178,12 +150,6 @@ RSpec.describe NlspecToDot::Planner::PromptBuilder do
 
     it "references idempotent creation" do
       expect(prompt).to include("find_or_create_by")
-    end
-  end
-
-  describe "#views_prompt" do
-    it "includes Turbo reference" do
-      expect(builder.views_prompt).to include("Turbo")
     end
   end
 

