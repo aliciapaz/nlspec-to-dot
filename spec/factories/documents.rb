@@ -7,6 +7,8 @@ FactoryBot.define do
     models { [] }
     features { [] }
     constraints { [] }
+    assets { [] }
+    seeds { [] }
 
     initialize_with do
       new(
@@ -14,7 +16,9 @@ FactoryBot.define do
         description: description,
         models: models,
         features: features,
-        constraints: constraints
+        constraints: constraints,
+        assets: assets,
+        seeds: seeds
       )
     end
 

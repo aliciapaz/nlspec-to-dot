@@ -21,6 +21,7 @@ gem "nlspec-to-dot"
 
 ```bash
 nlspec-to-dot compile spec.md -o pipeline.dot
+attractor run pipeline.dot --backend codex --interviewer console
 ```
 
 Options:
@@ -69,6 +70,9 @@ Related models: Post, User
 A DOT digraph with stages for scaffolding, models (topologically sorted by `belongs_to` dependencies), routes, controllers, services, views, tests, a test runner, a pass/fail gate with retry loop, and a human review gate. All `box` nodes include prompts with embedded Telos conventions.
 
 The output passes all 13 attractor lint rules.
+The scaffold `tool` stage uses a `10m` timeout to accommodate initial `rails new` and dependency setup.
+
+Generated DOT is backend-agnostic; choose `simulation`, `codex`, or `claude` when running the pipeline with `attractor run --backend ...`.
 
 ## Development
 

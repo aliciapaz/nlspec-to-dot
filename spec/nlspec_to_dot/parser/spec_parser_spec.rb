@@ -61,6 +61,172 @@ RSpec.describe NlspecToDot::Parser::SpecParser do
     end
   end
 
+  describe "enum parsing" do
+    let(:source) do
+      <<~MD
+        # EnumApp
+
+        Test app.
+
+        ## Models
+
+        ### Task
+        - title:string
+        - enum state: { draft: 0, completed: 1 }
+      MD
+    end
+
+    it "parses enum definitions" do
+      doc = described_class.parse(source)
+      task = doc.models.first
+      expect(task.enums).to eq([{name: "state", values: {"draft" => 0, "completed" => 1}}])
+    end
+  end
+
+  describe "has_many :through parsing" do
+    let(:source) do
+      <<~MD
+        # HMTApp
+
+        Test app.
+
+        ## Models
+
+        ### Team
+        - name:string
+        - has_many :memberships
+        - has_many :users, through: :memberships
+      MD
+    end
+
+    it "captures the through option" do
+      doc = described_class.parse(source)
+      team = doc.models.first
+      through_assoc = team.associations.find { |a| a[:through] }
+      expect(through_assoc).to eq({kind: :has_many, target: "Users", through: "memberships"})
+    end
+
+    it "parses regular has_many without through" do
+      doc = described_class.parse(source)
+      team = doc.models.first
+      regular = team.associations.find { |a| a[:target] == "Memberships" }
+      expect(regular).to eq({kind: :has_many, target: "Memberships"})
+    end
+  end
+
+  describe "dependent option parsing" do
+    let(:source) do
+      <<~MD
+        # DepApp
+
+        Test app.
+
+        ## Models
+
+        ### Project
+        - name:string
+        - has_many :forms, dependent: :destroy
+      MD
+    end
+
+    it "captures the dependent option" do
+      doc = described_class.parse(source)
+      project = doc.models.first
+      expect(project.associations.first).to eq({kind: :has_many, target: "Forms", dependent: :destroy})
+    end
+  end
+
+  describe "has_one_attached parsing" do
+    let(:source) do
+      <<~MD
+        # AttachApp
+
+        Test app.
+
+        ## Models
+
+        ### Report
+        - title:string
+        - has_one_attached :pdf
+      MD
+    end
+
+    it "parses has_one_attached as an attachment" do
+      doc = described_class.parse(source)
+      report = doc.models.first
+      expect(report.attachments).to eq([{name: "pdf"}])
+    end
+
+    it "does not add attachment to associations" do
+      doc = described_class.parse(source)
+      report = doc.models.first
+      expect(report.associations).to be_empty
+    end
+  end
+
+  describe "Assets section parsing" do
+    let(:source) do
+      <<~MD
+        # AssetApp
+
+        Test app.
+
+        ## Assets
+        - chart.js: npm:chart.js@4.4.4 -> vendor/javascript/chart.umd.js
+        - dexie.js: npm:dexie@4.0.4 -> vendor/javascript/dexie.min.js
+      MD
+    end
+
+    it "parses asset definitions" do
+      doc = described_class.parse(source)
+      expect(doc.assets.size).to eq(2)
+    end
+
+    it "extracts asset name, source, and destination" do
+      doc = described_class.parse(source)
+      expect(doc.assets.first).to eq({
+        name: "chart.js",
+        source: "npm:chart.js@4.4.4",
+        destination: "vendor/javascript/chart.umd.js"
+      })
+    end
+  end
+
+  describe "Seeds section parsing" do
+    let(:source) do
+      <<~MD
+        # SeedApp
+
+        Test app.
+
+        ## Seeds
+        - Admin user: email=admin@example.com, platform_role=super_admin
+        - Demo org: name=Demo Organization
+      MD
+    end
+
+    it "parses seed definitions" do
+      doc = described_class.parse(source)
+      expect(doc.seeds.size).to eq(2)
+    end
+
+    it "extracts seed label and attributes" do
+      doc = described_class.parse(source)
+      expect(doc.seeds.first).to eq({
+        label: "Admin user",
+        attributes: {"email" => "admin@example.com", "platform_role" => "super_admin"}
+      })
+    end
+
+    it "handles single-attribute seeds" do
+      doc = described_class.parse(source)
+      expect(doc.seeds.last).to eq({
+        label: "Demo org",
+        attributes: {"name" => "Demo Organization"}
+      })
+    end
+  end
+
   describe "with minimal spec" do
     let(:source) do
       <<~MD

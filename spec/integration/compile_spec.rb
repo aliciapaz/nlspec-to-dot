@@ -64,6 +64,21 @@ RSpec.describe "End-to-end compilation", :integration do
     expect(dot).to include("[F] Request Fixes")
   end
 
+  it "does not hardcode backend or provider metadata" do
+    expect(dot).not_to include("llm_provider")
+    expect(dot).not_to include("backend=")
+  end
+
+  it "includes template clone and customize stages" do
+    expect(dot).to include("template_clone")
+    expect(dot).to include("template_customize")
+  end
+
+  it "includes verification stages" do
+    expect(dot).to include("migrate_verify")
+    expect(dot).to include("routes_verify")
+  end
+
   context "with ecommerce fixture" do
     let(:fixture_path) { File.expand_path("../fixtures/ecommerce.md", __dir__) }
 
@@ -78,6 +93,21 @@ RSpec.describe "End-to-end compilation", :integration do
       org_pos = dot.index("model_organization")
       user_pos = dot.index("model_user")
       expect(org_pos).to be < user_pos
+    end
+
+    it "creates parallel model batches for independent models" do
+      # Organization is independent, so at least one batch should have fan-out
+      expect(dot).to include("models_batch")
+    end
+
+    it "creates parallel controller stages" do
+      expect(dot).to include("controllers_fan_out")
+      expect(dot).to include("controllers_fan_in")
+    end
+
+    it "creates parallel view stages" do
+      expect(dot).to include("views_fan_out")
+      expect(dot).to include("views_fan_in")
     end
   end
 end
